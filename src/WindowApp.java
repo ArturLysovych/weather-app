@@ -25,6 +25,7 @@ public class WindowApp extends JFrame {
         container.setLayout(new GridLayout(3, 2, 2, 10));
 
         JLabel city = new JLabel("Enter the name of the city");
+
         city_field = new JTextField("", 1);
 
         container.add(city);
@@ -56,7 +57,23 @@ public class WindowApp extends JFrame {
                         Gson gson = new Gson();
                         WeatherData weatherData = gson.fromJson(weather_data, WeatherData.class);
 
-                        System.out.println("Temperature: " + weatherData.getMain());
+                        SwingUtilities.invokeLater(() -> {
+                            Container container = getContentPane();
+                            container.setLayout(new GridLayout(3, 2, 2, 10));
+
+                            container.removeAll();
+
+                            JLabel temp = new JLabel("Температура" + weatherData.getMain().getTemp());
+                            JLabel pressure = new JLabel("Тиск" + weatherData.getMain().getPressure());
+                            JLabel humidity = new JLabel("Вологість" + weatherData.getMain().getHumidity());
+
+                            container.add(temp);
+                            container.add(pressure);
+                            container.add(humidity);
+
+                            revalidate();
+                            repaint();
+                        });
                     })
                     .join();
         }
