@@ -14,7 +14,8 @@ public class WindowApp extends JFrame {
 
     JTextField city_field;
     JLabel alertInfo = new JLabel("Data sent");
-    private Color currentTemperature = new Color(37, 207, 207);
+    private Color currentTemperature = new Color(20, 168, 168);
+    String iconSrc = "./assets/weather-icon-default.png";
     String weather_data;
     String weatherApiKey = System.getenv("WEATHER_API_KEY");
 
@@ -28,8 +29,8 @@ public class WindowApp extends JFrame {
         JPanel contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        ImageIcon icon = new ImageIcon(getClass().getResource("/assets/weather-icon.png"));
-        Image scaledImage = icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT);
+        ImageIcon icon = new ImageIcon(getClass().getResource(iconSrc));
+        Image scaledImage = icon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
         ImageIcon scaledIcon = new ImageIcon(scaledImage);
         JLabel imageLabel = new JLabel(scaledIcon);
 
@@ -54,7 +55,7 @@ public class WindowApp extends JFrame {
         contentPane.add(city);
         contentPane.add(city_field);
 
-        JButton send_button = new JButton("Відправити!");
+        JButton send_button = new JButton("View the forecast!");
         send_button.setBackground(currentTemperature);
         send_button.setForeground(Color.white);
         send_button.setBorder(null);
@@ -90,24 +91,31 @@ public class WindowApp extends JFrame {
 
                         SwingUtilities.invokeLater(() -> {
                             JPanel contentPane = (JPanel) getContentPane();
-                            contentPane.setLayout(new GridLayout(4, 2, 2, 10));
+                            contentPane.setLayout(new GridLayout(5, 2, 2, 10));
                             contentPane.removeAll();
 
-                            ImageIcon icon = new ImageIcon(getClass().getResource("/assets/weather-icon.png"));
-                            Image scaledImage = icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT);
+                            ImageIcon icon = new ImageIcon(getClass().getResource(iconSrc));
+                            Image scaledImage = icon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
                             ImageIcon scaledIcon = new ImageIcon(scaledImage);
                             JLabel imageLabel = new JLabel(scaledIcon);
 
                             double tempValue = weatherData.getMain().getTemp() - 270;
                             DecimalFormat df = new DecimalFormat("#.##");
-                            JLabel temp = new JLabel("Temperature: " + df.format(tempValue) + ";");                            JLabel pressure = new JLabel("Pressure: " + weatherData.getMain().getPressure() + ";");
+                            JLabel temp = new JLabel("Temperature: " + df.format(tempValue) + ";");
+                            JLabel pressure = new JLabel("Pressure: " + weatherData.getMain().getPressure() + ";");
                             JLabel humidity = new JLabel("Humidity: " + weatherData.getMain().getHumidity() + ";");
+                            JLabel cityName = new JLabel(weatherData.getName());
 
                             setTextUIProperties(temp);
                             setTextUIProperties(pressure);
                             setTextUIProperties(humidity);
+                            setTextUIProperties(cityName);
+
+                            cityName.setFont(new Font("Montserrat", Font.BOLD, 20));
+                            cityName.setHorizontalAlignment(SwingConstants.CENTER);
 
                             contentPane.add(imageLabel);
+                            contentPane.add(cityName);
                             contentPane.add(temp);
                             contentPane.add(pressure);
                             contentPane.add(humidity);
@@ -134,10 +142,15 @@ public class WindowApp extends JFrame {
 
     private Color getColorForTemperature(Double temperature) {
         if (temperature > 24) {
+            iconSrc = "./assets/weather-icon-warm.png";
             return new Color(227, 34, 69);
+
         } else if (temperature > 0 ) {
+            iconSrc = "./assets/weather-icon-normal.png";
             return new Color(245, 170, 66);
-        } else {
+        }
+        else {
+            iconSrc = "./assets/weather-icon-cold.png";
             return new Color(66, 135, 245);
         }
     }
