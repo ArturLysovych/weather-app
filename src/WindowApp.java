@@ -7,10 +7,14 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import com.google.gson.Gson;
+import javax.swing.border.EmptyBorder;
+import java.text.DecimalFormat;
 
 public class WindowApp extends JFrame {
 
     JTextField city_field;
+    JLabel alertInfo = new JLabel("Data sent");
+    private Color currentTemperature = new Color(37, 207, 207);
     String weather_data;
     String weatherApiKey = System.getenv("WEATHER_API_KEY");
 
@@ -21,19 +25,44 @@ public class WindowApp extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         weatherApiKey = (weatherApiKey != null) ? weatherApiKey : "f6d6c79aadeb13a2487b73442d186c75";
 
-        Container container = getContentPane();
-        container.setLayout(new GridLayout(3, 2, 2, 10));
+        JPanel contentPane = new JPanel();
+        contentPane.setBorder(new EmptyBorder(20, 20, 20, 20));
+
+        ImageIcon icon = new ImageIcon(getClass().getResource("/assets/weather-icon.png"));
+        Image scaledImage = icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT);
+        ImageIcon scaledIcon = new ImageIcon(scaledImage);
+        JLabel imageLabel = new JLabel(scaledIcon);
+
+        setContentPane(contentPane);
+        contentPane.setLayout(new GridLayout(4, 2, 2, 10));
+        contentPane.setBorder(new EmptyBorder(15, 15, 15, 15));
 
         JLabel city = new JLabel("Enter the name of the city");
+        city.setFont(new Font("Montserrat", Font.BOLD, 16));
+        city.setHorizontalAlignment(SwingConstants.CENTER);
+        city.setForeground(currentTemperature);
 
-        city_field = new JTextField("", 1);
+        alertInfo.setFont(new Font("Montserrat", Font.BOLD, 16));
+        alertInfo.setForeground(currentTemperature);
 
-        container.add(city);
-        container.add(city_field);
+        city_field = new JTextField("Your city", 1);
+        city_field.setFont(new Font("Montserrat", Font.BOLD, 16));
+        city_field.setForeground(currentTemperature);
+        city_field.setBorder((new EmptyBorder(0, 10, 0, 0)));
+
+        contentPane.add(imageLabel);
+        contentPane.add(city);
+        contentPane.add(city_field);
 
         JButton send_button = new JButton("Відправити!");
+        send_button.setBackground(currentTemperature);
+        send_button.setForeground(Color.white);
+        send_button.setBorder(null);
+        send_button.setFont(new Font("Montserrat", Font.BOLD, 16));
+        Cursor pointer = new Cursor(Cursor.HAND_CURSOR);
+        send_button.setCursor(pointer);
 
-        container.add(send_button);
+        contentPane.add(send_button);
 
         send_button.addActionListener(new ButtonEventManager());
     }
@@ -42,7 +71,7 @@ public class WindowApp extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            JOptionPane.showMessageDialog(WindowApp.this, "Data sent", "Success", JOptionPane.PLAIN_MESSAGE);
+            JOptionPane.showMessageDialog(WindowApp.this, alertInfo, "Success!", JOptionPane.PLAIN_MESSAGE);
             System.out.println(city_field.getText());
 
             HttpClient httpClient = HttpClient.newHttpClient();
@@ -57,22 +86,34 @@ public class WindowApp extends JFrame {
                         Gson gson = new Gson();
                         WeatherData weatherData = gson.fromJson(weather_data, WeatherData.class);
 
+                        setColor((weatherData.getMain().getTemp() - 270));
+
                         SwingUtilities.invokeLater(() -> {
-                            Container container = getContentPane();
-                            container.setLayout(new GridLayout(3, 2, 2, 10));
+                            JPanel contentPane = (JPanel) getContentPane();
+                            contentPane.setLayout(new GridLayout(4, 2, 2, 10));
+                            contentPane.removeAll();
 
-                            container.removeAll();
+                            ImageIcon icon = new ImageIcon(getClass().getResource("/assets/weather-icon.png"));
+                            Image scaledImage = icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT);
+                            ImageIcon scaledIcon = new ImageIcon(scaledImage);
+                            JLabel imageLabel = new JLabel(scaledIcon);
 
-                            JLabel temp = new JLabel("Температура" + weatherData.getMain().getTemp());
-                            JLabel pressure = new JLabel("Тиск" + weatherData.getMain().getPressure());
-                            JLabel humidity = new JLabel("Вологість" + weatherData.getMain().getHumidity());
+                            double tempValue = weatherData.getMain().getTemp() - 270;
+                            DecimalFormat df = new DecimalFormat("#.##");
+                            JLabel temp = new JLabel("Temperature: " + df.format(tempValue) + ";");                            JLabel pressure = new JLabel("Pressure: " + weatherData.getMain().getPressure() + ";");
+                            JLabel humidity = new JLabel("Humidity: " + weatherData.getMain().getHumidity() + ";");
 
-                            container.add(temp);
-                            container.add(pressure);
-                            container.add(humidity);
+                            setTextUIProperties(temp);
+                            setTextUIProperties(pressure);
+                            setTextUIProperties(humidity);
 
-                            revalidate();
-                            repaint();
+                            contentPane.add(imageLabel);
+                            contentPane.add(temp);
+                            contentPane.add(pressure);
+                            contentPane.add(humidity);
+
+                            contentPane.revalidate();
+                            contentPane.repaint();
                         });
                     })
                     .join();
@@ -85,5 +126,24 @@ public class WindowApp extends JFrame {
             WindowApp app = new WindowApp();
             app.setVisible(true);
         });
+    }
+
+    private void setColor(Double temperature) {
+        currentTemperature = getColorForTemperature(temperature);
+    }
+
+    private Color getColorForTemperature(Double temperature) {
+        if (temperature > 24) {
+            return new Color(227, 34, 69);
+        } else if (temperature > 0 ) {
+            return new Color(245, 170, 66);
+        } else {
+            return new Color(66, 135, 245);
+        }
+    }
+
+    private void setTextUIProperties(JComponent component) {
+        component.setFont(new Font("Montserrat", Font.BOLD, 16));
+        component.setForeground(currentTemperature);
     }
 }
